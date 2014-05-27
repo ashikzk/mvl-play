@@ -1041,7 +1041,8 @@ def get_videos(id, thumbnail, trailer, parent_id, series_name):
                       }]
 
 
-            src_list = ['firedrive', 'putlocker', 'movreel', 'promptfile', 'mightyupload', 'novamov', 'hugefile', 'billionupload', '180upload', 'lemupload', 'gorillavid']
+            src_list = ['firedrive', 'putlocker', 'movreel', 'promptfile', 'mightyupload', 'novamov', 'nowvideo', 'lemupload', 'gorillavid']
+            #'hugefile', 'billionupload', '180upload',
 
             for urls in jsonObj:
                 src_order = 0
@@ -1061,7 +1062,7 @@ def get_videos(id, thumbnail, trailer, parent_id, series_name):
             sd_count = 0
             for urls in jsonObj:
                 # if parent_id == '1' and urls['resolved_URL'] == 'NONE':
-                if urls['resolved_URL'] == 'NONE':
+                if urls['resolved_URL'] == 'NONE' and urls['src_order'] == 0:
                     continue
 
                 source_quality = ''
@@ -1088,6 +1089,9 @@ def get_videos(id, thumbnail, trailer, parent_id, series_name):
             for urls in jsonObj:
                 # if urls['resolved_URL'] == 'NONE':
                 #     continue
+                if urls['URL'].find('billionupload') >= 0 or urls['URL'].find('180upload') >= 0 or urls['URL'].find('hugefile') >= 0:
+                    #discard these 3 source for hd
+                    continue
 
                 source_quality = ''
                 source_url = urls['URL'][urls['URL'].find('://')+3:]
@@ -2500,11 +2504,11 @@ class CustomPurchaseOptions(xbmcgui.WindowXMLDialog):
 
     def showDialog(self):
         self.show()
-        self.getControl(21).setLabel("Other Purchase/Viewing Options")
-        self.getControl(22).setLabel("1) Amazon.com (www.amazon.com/dvd)")
-        self.getControl(23).setLabel("2) Google Play (www.play.google.com/store/movies)")
-        self.getControl(24).setLabel("3) iTunes.com (www.apple.com/itunes/charts/movies)")
-        self.getControl(25).setLabel("4) Fandango (www.fandango.com)")
+        self.getControl(21).setLabel("Purchase & Viewing")
+        self.getControl(22).setLabel("Amazon.com .................. [COLOR FF1F6C15]www.amazon.com/dvd[/COLOR]")
+        self.getControl(23).setLabel("Google Play ................... [COLOR FF1F6C15]www.play.google.com/store/movies[/COLOR]")
+        self.getControl(24).setLabel("iTunes.com ..................... [COLOR FF1F6C15]www.apple.com/itunes/charts/movies[/COLOR]")
+        self.getControl(25).setLabel("Fandango ....................... [COLOR FF1F6C15]www.fandango.com[/COLOR]")
         self.close()
 
         self.doModal()
