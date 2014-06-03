@@ -202,6 +202,26 @@ def index():
             #    return None
             ##
 
+            file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'update_lock.dat')
+            if not os.path.exists(file_path):
+                dialog = xbmcgui.Dialog()
+                #show dialog message
+                ret = dialog.ok('Update Available!', 'Please press OK to proceed.')
+                if ret == 1:
+                    xbmc.executebuiltin( "UpdateAddonRepos()" )
+                    #wait for 30 seconds
+                    time.sleep(30)
+
+                    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'update_lock.dat')
+                    f = open(file_path, 'w')
+                    f.write('true')
+                    f.close()
+
+                else:
+                    #hide_busy_dialog()
+                    sys_exit()
+                    exit()
+
 
             # Create a window instance.
             #global isAgree
