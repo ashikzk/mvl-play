@@ -7,10 +7,7 @@ if 'do_nothing' in sys.argv[0]:
 import os
 
 #########
-# path = xbmc.getInfoLabel('Container.FolderPath')
-# print "GULLI MARI"
-# print path
-# print sys.argv[0]
+# load last path
 file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_path.dat')
 if os.path.exists(file_path):
     f = open(file_path, 'r')
@@ -20,6 +17,7 @@ else:
     last_path = ''
 
 if last_path == sys.argv[0]:
+    #same path requested again. no need to load. exit immediately
     print "SAME PATH"
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     exit()
@@ -28,7 +26,6 @@ file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_pa
 f = open(file_path, 'w')
 f.write(sys.argv[0])
 f.close()
-# exit()
 ####
 
 #hide any existing loading and show system busy dialog to freeze the screen.
@@ -2095,7 +2092,7 @@ def get_azlist(key, page, category):
                                                            'Mark as {0}'.format(watched_state),
                                                            'XBMC.RunPlugin(%s)' % plugin.url_for('mark_as_{0}'.format(watched_state.lower()),
                                                                                                  video_type=watch_info['video_type'],
-                                                                                                 title=categories['title'].encode('utf-8'),
+                                                                                                 title=results['title'].encode('utf-8'),
                                                                                                  imdb_id=mvl_meta['imdb_id'],
                                                                                                  year=watch_info['year'],
                                                                                                  season=watch_info['season'],
