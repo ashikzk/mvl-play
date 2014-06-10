@@ -112,7 +112,7 @@ try:
 except:
     from pysqlite2 import dbapi2 as orm
 
-    plugin.log.info('pysqlite2 as DB engine')
+plugin.log.info('pysqlite2 as DB engine')
 DB = 'sqlite'
 __translated__ = xbmc.translatePath("special://database")
 DB_DIR = os.path.join(__translated__, 'myvideolibrary.db')
@@ -138,7 +138,9 @@ def index():
         f.write('false')
         f.close()
 
-    
+    #clear Current Section name saved in the skin
+    xbmc.executebuiltin('Skin.SetString(CurrentSection,)')
+
     try:
         #set view mode first so that whatever happens, it doesn't change
         mvl_view_mode = 58
@@ -1562,7 +1564,7 @@ def search(category):
         if not show_notification():
         
             try:
-                search_string = plugin.keyboard(heading=('search'))
+                search_string = plugin.keyboard(heading=('Search Media Engine'))
                 
                 #if nothing was typed, return without doing anything
                 if search_string is None or search_string == '' :
