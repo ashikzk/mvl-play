@@ -53,6 +53,7 @@ import xbmcplugin
 from t0mm0.common.addon import Addon
 import re
 import traceback
+import shutil
 
 from metahandler import metahandlers
 from metahandler import metacontainers
@@ -123,7 +124,6 @@ mvl_tvshow_title = ''
 isAgree = False
 
 
-
 @plugin.route('/')
 def index():
     global Main_cat
@@ -138,6 +138,11 @@ def index():
         f = open(file_path, 'w')
         f.write('false')
         f.close()
+
+    # copy pre-cached db
+    src_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources', 'data', 'video_cache.db')
+    dest_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'userdata', 'addon_data', 'script.module.metahandler', 'meta_cache', 'video_cache.db')
+    shutil.copyfile(src_path, dest_path)
 
     #clear Current Section name saved in the skin
     xbmc.executebuiltin('Skin.SetString(CurrentSection,)')
@@ -2533,9 +2538,9 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
     def createTrie(self):
         self.words = Trie()
         print self.category
-        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'movie_names.dat')
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources/data/movie_names.dat')
         if self.category == '3':
-            file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tv_names.dat')
+            file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources/data/tv_names.dat')
 
         f = open(file_path,'r')
         cnt = 0
@@ -2855,8 +2860,6 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
         # elif control == 10:
         #     self.close()
         #     onClick_disAgree()
-
-
 
 
 
