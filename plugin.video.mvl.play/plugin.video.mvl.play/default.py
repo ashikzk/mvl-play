@@ -1572,32 +1572,22 @@ def search(category):
             try:
                 #search_string = plugin.keyboard(heading=('Search Media Engine'))
 
-                #load word_movie or words_tv once
-                global words_movie
-                global words_tv
-
-                if category == '1' and words_movie is None:
+                #load word list
+                if category == '1':
                     file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources/data/movie_names.dat')
-                    words_movie = Trie()
-                    f = open(file_path,'r')
-                    cnt = 0
-                    for line in f.readlines():
-                        words_movie.insert(line.strip().lower(), 1)
-                        cnt += 1
-                    f.close()
-                elif category == '3' and words_tv is None:
+                else:
                     file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources/data/tv_names.dat')
-                    words_tv = Trie()
-                    f = open(file_path,'r')
-                    cnt = 0
-                    for line in f.readlines():
-                        words_tv.insert(line.strip().lower(), 1)
-                        cnt += 1
-                    f.close()
 
+                words = Trie()
+                f = open(file_path,'r')
+                cnt = 0
+                for line in f.readlines():
+                    words.insert(line.strip().lower(), 1)
+                    cnt += 1
+                f.close()
                 #
 
-                kb = CustomKeyboard('Custom-DialogKeyboard.xml', os.path.dirname(os.path.realpath(__file__)), category = category)
+                kb = CustomKeyboard('Custom-DialogKeyboard.xml', os.path.dirname(os.path.realpath(__file__)), category = category, words=words)
                 kb.doModal()
                 search_string = kb.labelString
 
@@ -2544,11 +2534,9 @@ class CustomPurchaseOptions(xbmcgui.WindowXMLDialog):
         if control == 10:
             self.close()
 
-words_movie = None
-words_tv = None
 
 class CustomKeyboard(xbmcgui.WindowXMLDialog):
-    def __init__(self, xmlFilename, scriptPath, category, defaultSkin = "Default", defaultRes = "1080i"):
+    def __init__(self, xmlFilename, scriptPath, category, words, defaultSkin = "Default", defaultRes = "1080i"):
         self.isUpper  = 0
         self.isSymbol = 0
         self.isLock   = 0
@@ -2559,9 +2547,9 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
         self.cursorPos   = 0
         self.labelString = None
         self.updateKeyboardLabel()
-        self.createTrie()
+        self.words = words
 
-    def createTrie(self):
+    # def createTrie(self):
         #self.words = Trie()
         #file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources/data/movie_names.dat')
         #if self.category == '3':
@@ -2574,14 +2562,14 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
         #    cnt += 1
         #f.close()
 
-        if self.category == '1':
-            self.words = words_movie
-        elif self.category == '3':
-            self.words = words_tv
-
-        #print len(self.words)
-
-        return
+        # if self.category == '1':
+        #     self.words = words_movie
+        # elif self.category == '3':
+        #     self.words = words_tv
+        #
+        # #print len(self.words)
+        #
+        # return
 
 
     def showCursor(self):
