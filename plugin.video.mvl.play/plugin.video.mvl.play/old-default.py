@@ -6,23 +6,6 @@ if 'do_nothing' in sys.argv[0]:
 
 import os
 
-#writes content to a file
-def file_write(file_name, data):
-    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
-    f = open(file_path, 'w')
-    if data is not None:
-        f.write(data)
-    f.close()
-
-#reads content from a file
-def file_read(file_name):
-    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
-    f = open(file_path, 'r')
-    data = f.read()
-    f.close()
-
-    return data
-
 #########
 # load last path
 file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_path.dat')
@@ -35,12 +18,14 @@ else:
 
 if last_path == sys.argv[0]:
     #same path requested again. no need to load. exit immediately
-    #print "SAME PATH"
+    print "SAME PATH"
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
     exit()
 
-file_write('screen_path.dat', sys.argv[0])
-
+file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_path.dat')
+f = open(file_path, 'w')
+f.write(sys.argv[0])
+f.close()
 ####
 
 #hide any existing loading and show system busy dialog to freeze the screen.
@@ -48,7 +33,10 @@ xbmc.executebuiltin( "Dialog.Close(busydialog)" )
 xbmc.executebuiltin( "ActivateWindow(busydialog)" )
 
 #save lockdown state to a file for future reference
-file_write('screen_lock.dat', 'true')
+file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_lock.dat')
+f = open(file_path, 'w')
+f.write('true')
+f.close()
 ####
 
 
@@ -96,7 +84,7 @@ usrsettings = xbmcaddon.Addon(id=common.plugin_id)
 # authentication['logged_in'] = 'false'
 #username = usrsettings.getSetting('username_xbmc')
 #activation_key = usrsettings.getSetting('activationkey_xbmc')
-page_limit = 100
+page_limit = 30
 username = ''
 activation_key = ''
 usrsettings.setSetting(id='mac_address', value=usrsettings.getSetting('mac_address'))
@@ -141,16 +129,20 @@ def index():
     global Main_cat
     global last_path
 
-    file_write('quit_log.dat', None)
+    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'quit_log.dat')
+    f = open(file_path, 'w')
+    f.close()
 
     if last_path == '':
-        file_write('term_agree.dat', 'false')
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'term_agree.dat')
+        f = open(file_path, 'w')
+        f.write('false')
+        f.close()
 
     # copy pre-cached db
     src_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources', 'data', 'video_cache.db')
     dest_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'userdata', 'addon_data', 'script.module.metahandler', 'meta_cache', 'video_cache.db')
-    if not os.path.exists(dest_path) or (os.path.exists(dest_path) and os.path.getsize(dest_path) < os.path.getsize(src_path)):
-        shutil.copyfile(src_path, dest_path)
+    shutil.copyfile(src_path, dest_path)
 
     #clear Current Section name saved in the skin
     xbmc.executebuiltin('Skin.SetString(CurrentSection,)')
@@ -303,7 +295,12 @@ def setup_internet_check():
     t.start()
 
 def check_quit_log():
-    r = file_read('quit_log.dat')
+    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'quit_log.dat')
+    f = open(file_path, 'r')
+    r = f.read()
+    f.close()
+
+    # print "check quit log = " + str(r)
 
     if r:
         return True
@@ -383,7 +380,10 @@ def onClick_agree():
     # opener = urllib2.build_opener()
     # f = opener.open(req)
 
-    file_write('term_agree.dat', 'true')
+    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'term_agree.dat')
+    f = open(file_path, 'w')
+    f.write('true')
+    f.close()
 
     isAgree = True
 
@@ -409,15 +409,17 @@ def check_condition():
     # plugin.log.info(url)
     # plugin.log.info(content)
 
-    content = file_read('term_agree.dat')
+    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'term_agree.dat')
+    f = open(file_path, 'r')
+    content = f.read()
+    f.close()
 
     if content == 'false':
         #Show Terms & Condition window
         heading = "Terms & Conditions"
-        text = file_read('t&c.info')
-
-        print 'tc-text'
-        print text
+        tc_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 't&c.info')
+        f = open(tc_path)
+        text = f.read()
 
         #dialog = xbmcgui.Dialog()
         #agree_ret = dialog.yesno(heading, text, yeslabel='Agree', nolabel='Disagree')
@@ -428,7 +430,10 @@ def check_condition():
 
         #make sure either Agree or disagree was clicked
         #if none was clicked, then go back to home
-        content = file_read('term_agree.dat')
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'term_agree.dat')
+        f = open(file_path, 'r')
+        content = f.read()
+        f.close()
         if content == 'false':
             onClick_disAgree()
 
@@ -493,9 +498,10 @@ def dialog_msg():
 def hide_busy_dialog():
     #hide loadign screen
     xbmc.executebuiltin( "Dialog.Close(busydialog)" )
-
     #clear file content to release lock
-    file_write('screen_lock.dat', None)
+    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_lock.dat')
+    f = open(file_path, 'w')
+    f.close()
 
 
 def show_root():
@@ -543,7 +549,7 @@ def get_categories(id, page):
             main_category_check = False
             is_search_category = False
             top_level_parent = 0
-            page_limit_cat = 100
+            page_limit_cat = 30
 
             xbmcplugin.setContent(pluginhandle, 'Movies')
 
@@ -926,7 +932,7 @@ def get_categories(id, page):
                                           'Writer': categories['writer'],
                                           'plot': mvl_plot,
                                           'genre': categories['sub_categories_names'],
-                                          #'cast': categories['actors'].encode('utf-8'),
+                                          'cast': categories['actors'].encode('utf-8'),
                                           'year': categories['release_date'],
                                           'premiered': categories['release_date'],
                                           'duration': mvl_meta['duration'],
@@ -961,8 +967,7 @@ def get_categories(id, page):
                         dp_created = True
 
                     done_count = done_count + 1
-                    #dp.update((done_count*100/item_count), str(done_count)+" of "+str(item_count)+" "+dp_type+"s loaded so far.")
-                    dp.update((done_count*100/item_count), str(done_count*100/item_count)+"%")
+                    dp.update((done_count*100/item_count), str(done_count)+" of "+str(item_count)+" "+dp_type+"s loaded so far.")
 
                     if dp.iscanceled():
                         break
@@ -1005,11 +1010,6 @@ def get_categories(id, page):
 
                 dp.close()
 
-            else:
-               showMessage('No result found', 'Sorry, No information Found Matching Your Query')
-               hide_busy_dialog()
-               exit()                
-               
 
             #we should set the view_mode as last thing in this method
             #because if user cancels his action and goes back before the api response
@@ -1061,11 +1061,6 @@ def get_categories(id, page):
 
 @plugin.route('/get_videos/<id>/<thumbnail>/<trailer>/<parent_id>/<series_name>')
 def get_videos(id, thumbnail, trailer, parent_id, series_name):
-
-    #xbmc.executebuiltin('XBMC.RunScript(special://home\\addons\\plugin.video.mvl\\script_subtitles.py)')
-    #hide_busy_dialog()
-    #exit()
-
     if check_internet():
         show_notification()
 
@@ -1102,9 +1097,7 @@ def get_videos(id, thumbnail, trailer, parent_id, series_name):
                       }]
 
 
-            src_list = ['movreel', 'novamov', 'nowvideo', 'gorillavid']
-            #'lemupload',
-            #'promptfile', 'mightyupload',
+            src_list = ['movreel', 'promptfile', 'mightyupload', 'novamov', 'nowvideo', 'lemupload', 'gorillavid']
             #'hugefile', 'billionupload', '180upload',
             # 'firedrive', 'putlocker',
 
@@ -1195,6 +1188,17 @@ def get_videos(id, thumbnail, trailer, parent_id, series_name):
         dialog_msg()
         hide_busy_dialog()
 
+
+def getFullPath(path, url, useKiosk, userAgent):
+    profile = ""
+    # if useOwnProfile:
+    #     profile = '--user-data-dir="'+profileFolder+'" '
+    kiosk = ""
+    if useKiosk=="yes":
+        kiosk = '--kiosk '
+    if userAgent:
+        userAgent = '--user-agent="'+userAgent+'" '
+    return '"'+path+'" '+profile+userAgent+'--start-maximized --disable-translate --disable-new-tab-first-run --no-default-browser-check --no-first-run '+kiosk+'"'+url+'"'
 
 video_popup = None
 
@@ -1383,7 +1387,7 @@ def play_video(url, resolved_url, title, video_type):
 
 
             while player._playbackLock.isSet():
-                #print('- - -' +'Playback lock set. Sleeping for 250.')
+                print('- - -' +'Playback lock set. Sleeping for 250.')
                 xbmc.sleep(250)
 
             #if we are here, it means playback has either stopped or finished
@@ -1510,6 +1514,52 @@ def login_check():
 
 from xml.dom import minidom
 
+def check_update():
+    try:
+        #get latest version number from github repo
+        url = "https://raw.githubusercontent.com/ashikzk/mvl-skin/master/addons.xml"
+        req = urllib2.Request(url)
+        opener = urllib2.build_opener()
+        f = opener.open(req)
+        content = f.read()
+
+        xmldoc = minidom.parseString(content)
+        addonlist = xmldoc.getElementsByTagName('addon')
+        mvl_video_version_latest = addonlist[0].attributes['version'].value
+        mvl_skin_version_latest = addonlist[1].attributes['version'].value
+
+        #now get currently installed version numbers
+        #mvl video addon
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'addon.xml')
+        xmldoc = minidom.parse(file_path)
+        addon = xmldoc.getElementsByTagName('addon')[0]
+        mvl_video_version = addon.attributes['version'].value
+
+        #mvl skin
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', common.skin_id, 'addon.xml')
+        xmldoc = minidom.parse(file_path)
+        addon = xmldoc.getElementsByTagName('addon')[0]
+        mvl_skin_version = addon.attributes['version'].value
+
+        #print 'Current Version = ' + mvl_video_version + ' and ' + mvl_skin_version
+        #print 'Latest Version = ' + mvl_video_version_latest + ' and ' + mvl_skin_version_latest
+
+        if mvl_video_version == mvl_video_version_latest and mvl_skin_version == mvl_skin_version_latest:
+            #showMessage('No Update Required', 'You already have the latest version. No update is required.')
+            return False
+        else:
+            showMessage('Update Required', 'New version is available. You need to update your system before proceeding any further.')
+            return True
+
+    except IOError, e:
+        dialog_msg()
+        return False
+
+    pass
+
+def run_update():
+    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'script_update.py')
+    xbmc.executebuiltin("RunScript("+file_path+")")
 
 @plugin.route('/search/<category>/')
 def search(category):
@@ -1737,7 +1787,7 @@ def search(category):
                                               'Writer': categories['writer'],
                                               'plot': mvl_plot,
                                               'genre': categories['sub_categories_names'],
-                                              #'cast': categories['actors'].encode('utf-8'),
+                                              'cast': categories['actors'].encode('utf-8'),
                                               'year': categories['release_date'],
                                               'premiered': categories['release_date'],
                                               'duration': mvl_meta['duration'],
@@ -1773,7 +1823,7 @@ def search(category):
                             dp_created = True
                                   
                         done_count = done_count + 1
-                        dp.update((done_count*100/item_count), str(done_count*100/item_count)+"%")
+                        dp.update((done_count*100/item_count), str(done_count)+" of "+str(item_count)+" "+dp_type+"s loaded so far.")
 
                         if dp.iscanceled():
                             break                                 
@@ -2060,7 +2110,7 @@ def get_azlist(key, page, category):
                                           'Writer': results['writer'],
                                           'plot': mvl_plot,
                                           'genre': results['sub_categories_names'],
-                                          #'cast': results['actors'].encode('utf-8'),
+                                          'cast': results['actors'].encode('utf-8'),
                                           'year': results['release_date'],
                                           'premiered': results['release_date'],
                                           'duration': mvl_meta['duration']
@@ -2095,7 +2145,7 @@ def get_azlist(key, page, category):
                         dp_created = True
                                   
                     done_count = done_count + 1
-                    dp.update((done_count*100/item_count), str(done_count*100/item_count)+"%")
+                    dp.update((done_count*100/item_count), str(done_count)+" of "+str(item_count)+" "+dp_type+"s loaded so far.")
 
                     if dp.iscanceled():
                         break
@@ -2211,7 +2261,7 @@ def mostpopular(page, category):
                     dp_created = True
                               
                 done_count = done_count + 1
-                dp.update((done_count*100/item_count), str(done_count*100/item_count)+"%")
+                dp.update((done_count*100/item_count), str(done_count)+" of "+str(item_count)+" "+dp_type+"s loaded so far.")
 
                 if dp.iscanceled():
                     break
@@ -2265,7 +2315,10 @@ def sys_exit():
     xbmc.executebuiltin("XBMC.ActivateWindow(Home)")
 
     #reset path to home
-    file_write('screen_path.dat', None)
+    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_path.dat')
+    f = open(file_path, 'w')
+    f.write('')
+    f.close()
 
 
 @plugin.route('/get_favourites/<category>/')
@@ -2313,7 +2366,6 @@ def get_favourites(category):
     return items
 
 
-
 class CustomTermsPopup(xbmcgui.WindowXMLDialog):
     def __init__(self, xmlFilename, scriptPath, defaultSkin = "Default", defaultRes = "1080i"):
         pass
@@ -2332,6 +2384,7 @@ class CustomTermsPopup(xbmcgui.WindowXMLDialog):
         elif control == 10:
             self.close()
             onClick_disAgree()
+
 
 
 class CustomPopup(xbmcgui.WindowXMLDialog):
@@ -2379,10 +2432,6 @@ class CustomPopup(xbmcgui.WindowXMLDialog):
 
         elif control == 23:
             #exit
-
-            #clear path of current popup
-            file_write('screen_path.dat', None)
-
             self.close()
 
         elif control == 24:
@@ -2435,6 +2484,15 @@ class CustomPopup(xbmcgui.WindowXMLDialog):
             #self.close()
             pass
 
+            #path = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
+            #path64 = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+            #if os.path.exists(path):
+            #    # fullUrl = getFullPath(path, "http://www.facebook.com", "", "")
+            #    # subprocess.check_call("am start -a android.intent.action.VIEW -d http://www.facebook.com", shell=False)
+            #    subprocess.check_call(path+" http://www.facebook.com", shell=False)
+            #elif os.path.exists(path64):
+            #    subprocess.check_call(path64+" http://www.facebook.com", shell=False)
+
 
 class CustomReviewPopup(xbmcgui.WindowXMLDialog):
     def __init__(self, xmlFilename, scriptPath, defaultSkin = "Default", defaultRes = "1080i"):
@@ -2456,7 +2514,6 @@ class CustomReviewPopup(xbmcgui.WindowXMLDialog):
         if control == 11:
             self.close()
             resume_popup_window()
-
 
 class CustomPurchaseOptions(xbmcgui.WindowXMLDialog):
     def __init__(self, xmlFilename, scriptPath, defaultSkin = "Default", defaultRes = "1080i"):
@@ -2492,12 +2549,35 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
         self.updateKeyboardLabel()
         self.words = words
 
+    # def createTrie(self):
+        #self.words = Trie()
+        #file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources/data/movie_names.dat')
+        #if self.category == '3':
+        #    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'resources/data/tv_names.dat')
+        #
+        #f = open(file_path,'r')
+        #cnt = 0
+        #for line in f.readlines():
+        #    self.words.insert(line.strip().lower(), 1)
+        #    cnt += 1
+        #f.close()
+
+        # if self.category == '1':
+        #     self.words = words_movie
+        # elif self.category == '3':
+        #     self.words = words_tv
+        #
+        # #print len(self.words)
+        #
+        # return
+
+
     def showCursor(self):
         if self.isLock == 1:
             time.sleep(.1)
 
         label = self.getControl(310).getLabel()
-        labelList = list(str(label))
+        labelList = list(label)
         if self.cursorState == 0:
             labelList[self.cursorPos] = '|'
             self.cursorState = 1
@@ -2508,10 +2588,15 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
         self.getControl(310).setLabel(label)
         time.sleep(.4)
         self.showCursor()
+        '''
+        for i in range(1,5):
+            time.sleep(3)
+            self.getControl(310).setLabel('Thread' + str(i))'''
+
 
     def updateKeyboardLabel(self):
 
-        self.getControl(311).setLabel("Search Media Engine")
+        self.getControl(311).setLabel("Search")
         self.getControl(310).setLabel("|")
         for i in range(434, 439):
             self.getControl(i).setVisible(False)
@@ -2523,6 +2608,9 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
         self.t = Thread(name='test', target=self.showCursor)
         self.t.daemon = True
         self.t.start()
+
+
+
 
     def updateKeyboardLabelNumeric(self):
         self.isLock = 0;
@@ -2549,6 +2637,7 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
             except:
                 pass
 
+
     def updateKeyboardLabelSymbols(self):
         keys = "QWERTYUIOPASDFGHJKLZXCVBNM"
         symbols = "!@#$%^&*()_-+[]|\\:;'<>?/.,"
@@ -2558,7 +2647,6 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
                 self.getControl(ord(keys[i])).setLabel(symbols[i])
             except:
                 pass
-
     def findSymbol(self, control):
         ret = ''
         if self.isSymbol != 1:
@@ -2572,6 +2660,13 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
             pos = keys.find(ret)
             ret = symbols[pos]
         return ret
+    # def onAction(self, action):
+    #     print action
+    #     self.getControl(310).setLabel(str(action.getId()))
+    #     if action.getId() == 100:
+    #         self.close()
+    #     elif action.getId() == 65:
+    #         self.getControl(310).setLabel(str(action.getId()))
 
     def updateSuggestion(self):
         #return
@@ -2599,161 +2694,6 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
             control += 1
         return
 
-    def moveLeft(self):
-        self.isLock = 1
-        label = self.getControl(310).getLabel()
-        if(self.cursorPos == 0):
-            self.isLock = 0
-            return
-        labelList = list(label)
-        #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
-        del labelList[self.cursorPos]
-        self.cursorPos -= 1
-        if(self.cursorPos < 0):
-            self.cursorPos = 0
-        newLabelList = []
-        for i in range(0, self.cursorPos):
-            newLabelList.append(labelList[i])
-        newLabelList.append(' ')
-        for i in range(self.cursorPos, len(labelList)):
-            newLabelList.append(labelList[i])
-        if self.cursorState == 1:
-            newLabelList[self.cursorPos] = '|'
-            self.cursorState = 1
-        else:
-            newLabelList[self.cursorPos] = ' '
-            self.cursorState = 0
-        label = ''.join(newLabelList)
-        self.getControl(310).setLabel(label)
-        self.updateSuggestion()
-        self.isLock = 0
-        return
-
-    def moveRight(self):
-        self.isLock = 1
-        label = self.getControl(310).getLabel()
-        if(self.cursorPos == len(label)-1):
-            self.isLock = 0
-            return
-        labelList = list(label)
-        #self.cursorPos += 1
-        #if(self.cursorPos >= len(label)):
-        #    self.cursorPos = len(label)-1
-
-
-        #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
-        del labelList[self.cursorPos]
-        newLabelList = []
-        for i in range(0, self.cursorPos+1):
-            newLabelList.append(labelList[i])
-        newLabelList.append(' ')
-        for i in range(self.cursorPos+1, len(labelList)):
-            newLabelList.append(labelList[i])
-        self.cursorPos += 1
-        if(self.cursorPos >= len(label)-1):
-            self.cursorPos = len(label)-1
-        if self.cursorState == 1:
-            newLabelList[self.cursorPos] = '|'
-            self.cursorState = 1
-        else:
-            newLabelList[self.cursorPos] = ' '
-            self.cursorState = 0
-        label = ''.join(newLabelList)
-        self.getControl(310).setLabel(label)
-        self.isLock = 0
-        return
-
-    def deleteChar(self):
-        self.isLock = 1
-        if self.cursorPos == 0:
-            self.isLock = 0
-            return
-        label = self.getControl(310).getLabel()
-        labelList = list(label)
-        #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
-        del labelList[self.cursorPos-1]
-        #sym = self.findSymbol(control)
-        #labelList += list(sym)
-        self.cursorPos -= 1
-        if(self.cursorPos < 0):
-            self.cursorPos = 0
-        #print self.cursorPos
-        if self.cursorState == 1:
-            labelList[self.cursorPos] = '|'
-            self.cursorState = 1
-        else:
-            labelList[self.cursorPos] = ' '
-            self.cursorState = 0
-        label = ''.join(labelList)
-        self.getControl(310).setLabel(label)
-        self.updateSuggestion()
-        self.isLock = 0
-        return
-
-    def insertChar(self, sym):
-        self.isLock = 1
-        #print self.words.__len__()
-        label = self.getControl(310).getLabel()
-        labelList = list(label)
-        #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
-        #del labelList[self.cursorPos]
-        newLabelList = []
-        for i in range(0, self.cursorPos):
-            newLabelList.append(labelList[i])
-        newLabelList += list(sym)
-        for i in range(self.cursorPos, len(labelList)):
-            newLabelList.append(labelList[i])
-        #labelList.append('')
-        self.cursorPos += len(sym)
-        #print self.cursorPos
-        if self.cursorState == 1:
-            newLabelList[self.cursorPos] = '|'
-            self.cursorState = 1
-        else:
-            newLabelList[self.cursorPos] = ' '
-            self.cursorState = 0
-        label = ''.join(newLabelList)
-        self.getControl(310).setLabel(label)
-        self.updateSuggestion()
-        self.isLock = 0
-        return
-
-    def onAction(self, action):
-        if action.getId() != 100 and action.getId() != 107:
-            v = action.getButtonCode() & 255
-            if v >= 33 and v <= 126: #ascii
-                v = chr(v)
-                if self.isUpper == 0:
-                    v = v.lower()
-                self.insertChar(v)
-            elif v == 8: #backspace
-                self.deleteChar()
-            elif v == 130: #left
-                self.moveLeft()
-            elif v == 131: #right
-                self.moveRight()
-            elif v == 13: #enter
-                label = self.getControl(310).getLabel()
-                labelList = list(label)
-                #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
-                del labelList[self.cursorPos]
-                self.labelString = ''.join(labelList)
-                self.close()
-                pass
-            elif v == 27:
-                self.labelString = ''
-                self.close()
-                pass
-            elif v == 32:
-                self.insertChar(' ')
-            else:
-                pass
-
-            #print "muri "+ str(v)
-            # 8 back, 9 tab, 13 enter, esc 27, left 130, right 131
-            ''''''
-        pass
-
     def onClick (self, control):
         #print "control test"
         if control == 300:
@@ -2772,16 +2712,95 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
 
         ''' This Thing is needed to be done '''
         if control == 305:
-            self.moveLeft()
+            self.isLock = 1
+            label = self.getControl(310).getLabel()
+            if(self.cursorPos == 0):
+                self.isLock = 0
+                return
+            labelList = list(label)
+            #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
+            del labelList[self.cursorPos]
+            self.cursorPos -= 1
+            if(self.cursorPos < 0):
+                self.cursorPos = 0
+            newLabelList = []
+            for i in range(0, self.cursorPos):
+                newLabelList.append(labelList[i])
+            newLabelList.append(' ')
+            for i in range(self.cursorPos, len(labelList)):
+                newLabelList.append(labelList[i])
+            if self.cursorState == 1:
+                newLabelList[self.cursorPos] = '|'
+                self.cursorState = 1
+            else:
+                newLabelList[self.cursorPos] = ' '
+                self.cursorState = 0
+            label = ''.join(newLabelList)
+            self.getControl(310).setLabel(label)
+            self.updateSuggestion()
+            self.isLock = 0
             return
 
 
         if control == 306:
-            self.moveRight()
+            self.isLock = 1
+            label = self.getControl(310).getLabel()
+            if(self.cursorPos == len(label)-1):
+                self.isLock = 0
+                return
+            labelList = list(label)
+            #self.cursorPos += 1
+            #if(self.cursorPos >= len(label)):
+            #    self.cursorPos = len(label)-1
+
+
+            #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
+            del labelList[self.cursorPos]
+            newLabelList = []
+            for i in range(0, self.cursorPos+1):
+                newLabelList.append(labelList[i])
+            newLabelList.append(' ')
+            for i in range(self.cursorPos+1, len(labelList)):
+                newLabelList.append(labelList[i])
+            self.cursorPos += 1
+            if(self.cursorPos >= len(label)-1):
+                self.cursorPos = len(label)-1
+            if self.cursorState == 1:
+                newLabelList[self.cursorPos] = '|'
+                self.cursorState = 1
+            else:
+                newLabelList[self.cursorPos] = ' '
+                self.cursorState = 0
+            label = ''.join(newLabelList)
+            self.getControl(310).setLabel(label)
+            self.isLock = 0
             return
 
         if control == 8: #Del/ Backspace
-            self.deleteChar()
+            self.isLock = 1
+            label = self.getControl(310).getLabel()
+            labelList = list(label)
+            #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
+            del labelList[self.cursorPos]
+            #sym = self.findSymbol(control)
+            #labelList += list(sym)
+            if(len(labelList) > 0):
+                labelList = labelList[:(len(labelList)-1)]
+            labelList.append('')
+            self.cursorPos -= 1
+            if(self.cursorPos < 0):
+                self.cursorPos = 0
+            #print self.cursorPos
+            if self.cursorState == 1:
+                labelList[self.cursorPos] = '|'
+                self.cursorState = 1
+            else:
+                labelList[self.cursorPos] = ' '
+                self.cursorState = 0
+            label = ''.join(labelList)
+            self.getControl(310).setLabel(label)
+            self.updateSuggestion()
+            self.isLock = 0
             return
 
         if control == 303 or control == 302:
@@ -2826,8 +2845,38 @@ class CustomKeyboard(xbmcgui.WindowXMLDialog):
 
             self.isLock = 0
             return
-
-        self.insertChar(self.findSymbol(control))
+        self.isLock = 1
+        #print self.words.__len__()
+        label = self.getControl(310).getLabel()
+        labelList = list(label)
+        #print "{0}, {1}, {2}".format(self.cursorPos, label, len(label))
+        #del labelList[self.cursorPos]
+        sym = self.findSymbol(control)
+        newLabelList = []
+        for i in range(0, self.cursorPos):
+            newLabelList.append(labelList[i])
+        newLabelList += list(sym)
+        for i in range(self.cursorPos, len(labelList)):
+            newLabelList.append(labelList[i])
+        #labelList.append('')
+        self.cursorPos += len(sym)
+        #print self.cursorPos
+        if self.cursorState == 1:
+            newLabelList[self.cursorPos] = '|'
+            self.cursorState = 1
+        else:
+            newLabelList[self.cursorPos] = ' '
+            self.cursorState = 0
+        label = ''.join(newLabelList)
+        self.getControl(310).setLabel(label)
+        self.updateSuggestion()
+        self.isLock = 0
+        # if control == 11:
+        #     self.close()
+        #     onClick_agree()
+        # elif control == 10:
+        #     self.close()
+        #     onClick_disAgree()
 
 
 
@@ -2838,10 +2887,16 @@ if __name__ == '__main__':
     xbmc.executebuiltin("Container.SetViewMode(%s)" % mvl_view_mode)
 
     ####
-    last_path = file_read('screen_path.dat')
+    file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_path.dat')
+    f = open(file_path, 'r')
+    last_path = f.read()
+    f.close()
 
-    if last_path and 'mark_as' not in last_path:
+    if 'mark_as' not in last_path:
         #do not update path in case of mark_as_watched/unwatched was selected
         path = xbmc.getInfoLabel('Container.FolderPath')
-        file_write('screen_path.dat', path)
+        file_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'screen_path.dat')
+        f = open(file_path, 'w')
+        f.write(path)
+        f.close()
 
