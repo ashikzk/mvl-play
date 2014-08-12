@@ -1,4 +1,4 @@
-<addon id="skin.mvl.play" version="1.0.1" name="MVL Skin" provider-name="Mukto Software Ltd.">
+<addon id="skin.mvl.play" version="1.0.2" name="MVL Skin" provider-name="Mukto Software Ltd.">
   <requires>
     <import addon="xbmc.gui" version="4.0.0"/>
     <import addon="script.favourites" version="3.2.0"/>
